@@ -36,6 +36,7 @@ namespace MinesweeperOnline
             posY = y;
             posX = x;
             indicator = i;
+            mineProbability = null;
         }
     }
 
@@ -61,8 +62,51 @@ namespace MinesweeperOnline
             map.Last().Add(c);
             size++;
         }
-
+        public Cell GetCell(int y, int x)
+        {
+            if (y >= 0 && x >= 0 && y < height && x < width)
+            {
+                return map[y][x];
+            }
+            return null;
+        }
     }
+
+    public interface IStratagy
+    {
+        void Evaluate(Board b);
+    }
+
+    public class StratagyBase : IStratagy
+    {
+        Board board;
+        public StratagyBase(Board b)
+        {
+            board = b;
+
+        }
+        public void Evaluate(Board b)
+        {
+
+        }
+    }
+
+
+
+    public class MinesweeperSolver
+    {
+        public List<IStratagy> stratagies = new List<IStratagy>();
+
+        public Cell BestMove(Board board)
+        {
+            foreach (IStratagy sgt in stratagies)
+            {
+                sgt.Evaluate(board);
+            }
+            return board.map.SelectMany(a => a).Where(b => null != b.mineProbability).OrderBy(c => c).FirstOrDefault();
+        }
+    }
+
 
     public class WebOperator
     {
@@ -80,7 +124,7 @@ namespace MinesweeperOnline
                 {
                     c = new Cell(CellType.Flag, 0, y, x);
                 }
-                else if (css.Any(s=>s.Contains("hd_type")))
+                else if (css.Any(s => s.Contains("hd_type")))
                 {
                     Match m = regexDigit.Match(string.Join("", css));
                     c = new Cell(CellType.Number, int.Parse(m.Groups["num"].Value), y, x);
