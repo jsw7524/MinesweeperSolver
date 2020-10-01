@@ -70,6 +70,19 @@ namespace MinesweeperOnline
             }
             return null;
         }
+        public IEnumerable<Cell> GetCellsSurroundYX(int y, int x)
+        {
+            List<Cell> result = new List<Cell>();
+            result.Add(GetCell(y - 1, x - 1));
+            result.Add(GetCell(y - 1, x));
+            result.Add(GetCell(y - 1, x + 1));
+            result.Add(GetCell(y, x - 1));
+            result.Add(GetCell(y, x + 1));
+            result.Add(GetCell(y + 1, x - 1));
+            result.Add(GetCell(y + 1, x));
+            result.Add(GetCell(y + 1, x + 1));
+            return result.Where(r => null != r);
+        }
     }
 
     public interface IStratagy
@@ -79,15 +92,37 @@ namespace MinesweeperOnline
 
     public class StratagyBase : IStratagy
     {
-        Board board;
-        public StratagyBase(Board b)
-        {
-            board = b;
-
-        }
         public void Evaluate(Board b)
         {
+            foreach (var row in b.map)
+            {
+                foreach (var c in row)
+                {
+                    switch (c.cellType)
+                    {
+                        case CellType.Number:
+                            var sur = b.GetCellsSurroundYX(c.posY, c.posX);
+                            decimal tatalUnknown = sur.Where(k => CellType.Unknown == k.cellType).Count();
+                            if (0== tatalUnknown)
+                            {
+                                continue;
+                            }
 
+                            foreach (var s in sur)
+                            {
+                                if (null == s.mineProbability || s.mineProbability < (c.indicator / tatalUnknown))
+                                {
+                                    s.mineProbability = c.indicator / tatalUnknown;
+                                    if (s.mineProbability >= 1)
+                                    {
+                                        s.cellType = CellType.Mine;
+                                    }
+                                }
+                            }
+                            break;
+                    }
+                }
+            }
         }
     }
 
@@ -97,19 +132,36 @@ namespace MinesweeperOnline
     {
         public List<IStratagy> stratagies = new List<IStratagy>();
 
+        public MinesweeperSolver()
+        {
+            stratagies.Add(new StratagyBase());
+        }
+
         public Cell BestMove(Board board)
         {
             foreach (IStratagy sgt in stratagies)
             {
                 sgt.Evaluate(board);
             }
-            return board.map.SelectMany(a => a).Where(b => null != b.mineProbability).OrderBy(c => c).FirstOrDefault();
+            foreach (IStratagy sgt in stratagies)
+            {
+                sgt.Evaluate(board);
+            }
+            return board.map.SelectMany(a => a).Where(b => null != b.mineProbability && CellType.Unknown==b.cellType).OrderBy(c => c.mineProbability).FirstOrDefault();
         }
     }
 
 
     public class WebOperator
     {
+        public IWebDriver driver;
+        public WebOperator(IWebDriver d)
+        {
+            driver = d ?? new ChromeDriver();
+            driver.Navigate().GoToUrl(@"https://minesweeper.online/");
+            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(5);
+            Thread.Sleep(1000);
+        }
         public Board MakeBoard(ReadOnlyCollection<IWebElement> data, Board b)
         {
             Board board = b;
@@ -137,6 +189,17 @@ namespace MinesweeperOnline
             }
             return board;
         }
+
+        public void ClickOnBoard(Cell c)
+        {
+            ClickOnBoard(c.posY, c.posX);
+        }
+        public void ClickOnBoard(int y, int x)
+        {
+            var target = driver.FindElement(By.Id($"cell_{x}_{y}"));
+            target.Click();
+            Thread.Sleep(1000);
+        }
     }
 
 
@@ -144,42 +207,21 @@ namespace MinesweeperOnline
     {
         static void Main(string[] args)
         {
-            IWebDriver driver = new ChromeDriver();
-            driver.Navigate().GoToUrl(@"https://minesweeper.online/");
-            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(5);
+            WebOperator webOperator = new WebOperator(new ChromeDriver());
+            webOperator.ClickOnBoard(0, 0);
+            webOperator.ClickOnBoard(3, 3);
 
-            Thread.Sleep(1);
+            for (int i=0;i<30;i++)
+            {
+                Board board = new Board(9,9);
+                var data = webOperator.driver.FindElement(By.Id("A43")).FindElements(By.CssSelector(".cell"));
+                webOperator.MakeBoard(data, board);
+                MinesweeperSolver solver = new MinesweeperSolver();
+                var nextMove=solver.BestMove(board);
+                Debug.WriteLine($"{nextMove.posY} {nextMove.posX}");
+                webOperator.ClickOnBoard(nextMove.posY, nextMove.posX);
+            }
 
-            //var faceIcon = driver.FindElement(By.Id("top_area_face"));
-            //faceIcon.Click();
-            //Thread.Sleep(1);
-
-            var cell11 = driver.FindElement(By.Id("cell_1_1"));
-
-            Thread.Sleep(1000);
-
-            cell11.Click();
-
-
-            Thread.Sleep(1000);
-            var cell22 = driver.FindElement(By.Id("cell_2_2"));
-
-            Thread.Sleep(1000);
-
-            cell22.Click();
-            Thread.Sleep(1000);
-
-            var data = driver.FindElement(By.Id("A43")).FindElements(By.CssSelector(".cell"));
-
-            /////////////////////
-            Board board = new Board(9, 9);
-            WebOperator webOperator = new WebOperator();
-
-            webOperator.MakeBoard(data, board);
-
-
-            //////////////////
-            ////driver.Quit();
         }
     }
 }

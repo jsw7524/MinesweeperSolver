@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.30406.217
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MinesweeperOnline", "MinesweeperOnline\MinesweeperOnline.csproj", "{486C015F-C0EA-4F32-A04F-DA58E9E7B692}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTestProject1", "UnitTestProject1\UnitTestProject1.csproj", "{F5C564C8-1C55-4017-9BA5-3BA2AA7D8029}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{486C015F-C0EA-4F32-A04F-DA58E9E7B692}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{486C015F-C0EA-4F32-A04F-DA58E9E7B692}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{486C015F-C0EA-4F32-A04F-DA58E9E7B692}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F5C564C8-1C55-4017-9BA5-3BA2AA7D8029}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5C564C8-1C55-4017-9BA5-3BA2AA7D8029}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5C564C8-1C55-4017-9BA5-3BA2AA7D8029}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5C564C8-1C55-4017-9BA5-3BA2AA7D8029}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
