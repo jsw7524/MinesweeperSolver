@@ -1,4 +1,5 @@
-﻿using OpenQA.Selenium;
+﻿using Newtonsoft.Json;
+using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Interactions;
 using System;
@@ -7,6 +8,7 @@ using System.Collections.ObjectModel;
 using System.Data;
 using System.Deployment.Internal;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -107,12 +109,11 @@ namespace MinesweeperOnline
                             {
                                 continue;
                             }
-
                             foreach (var s in sur)
                             {
-                                if (null == s.mineProbability || s.mineProbability < (c.indicator / tatalUnknown))
+                                if (null == s.mineProbability || s.mineProbability < ((c.indicator) / tatalUnknown))
                                 {
-                                    s.mineProbability = c.indicator / tatalUnknown;
+                                    s.mineProbability = (c.indicator) / tatalUnknown;
                                     if (s.mineProbability >= 1)
                                     {
                                         s.cellType = CellType.Mine;
@@ -125,8 +126,6 @@ namespace MinesweeperOnline
             }
         }
     }
-
-
 
     public class MinesweeperSolver
     {
@@ -151,14 +150,13 @@ namespace MinesweeperOnline
         }
     }
 
-
     public class WebOperator
     {
         public IWebDriver driver;
-        public WebOperator(IWebDriver d)
+        public WebOperator(IWebDriver d, string targetURL= @"https://minesweeper.online/")
         {
             driver = d ?? new ChromeDriver();
-            driver.Navigate().GoToUrl(@"https://minesweeper.online/");
+            driver.Navigate().GoToUrl(targetURL);
             driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(5);
             Thread.Sleep(1000);
         }
@@ -202,19 +200,34 @@ namespace MinesweeperOnline
         }
     }
 
+    //public static class Helper
+    //{
+    //    public static string IWebElementsToJson(IEnumerable<IWebElement> data)
+    //    {
+    //        return JsonConvert.SerializeObject(data.ToList());
+    //    }
+
+    //    public static void SaveToCSV(string data, string fileName)
+    //    {
+    //        File.AppendAllText(fileName, data);
+    //    }
+    //}
+
 
     class Program
     {
         static void Main(string[] args)
         {
+
             WebOperator webOperator = new WebOperator(new ChromeDriver());
-            webOperator.ClickOnBoard(0, 0);
+            webOperator.ClickOnBoard(5, 5);
             webOperator.ClickOnBoard(3, 3);
 
             for (int i=0;i<30;i++)
             {
                 Board board = new Board(9,9);
                 var data = webOperator.driver.FindElement(By.Id("A43")).FindElements(By.CssSelector(".cell"));
+                //Helper.SaveToCSV(Helper.IWebElementsToJson(data.AsEnumerable()), "TestFile.txt");
                 webOperator.MakeBoard(data, board);
                 MinesweeperSolver solver = new MinesweeperSolver();
                 var nextMove=solver.BestMove(board);

@@ -1,0 +1,1 @@
+_gfp_s_({"_cookies_":[{"_value_":"ID=5af4ff244315bc71-22ed4a28c8c30057:T=1601620930:RT=1601620930:S=ALNI_Mb8mOcnCJFaR1mv3yqCsk2zzjSBzg","_expires_":1635316930,"_path_":"/","_domain_":"minesweeper.online"}]});
