@@ -80,6 +80,8 @@ namespace UnitTestProject1
         public void TestMethod6()
         {
             Board b = LoadTestBoard1();
+            StratagyBase stratagyBase = new StratagyBase();
+            stratagyBase.Evaluate(b);
         }
 
     }
