@@ -72,6 +72,12 @@ namespace MinesweeperOnline
             }
             return null;
         }
+
+        public IEnumerable<Cell> GetCellsSurroundYX(Cell c)
+        {
+            return GetCellsSurroundYX(c.posY, c.posX);
+        }
+
         public IEnumerable<Cell> GetCellsSurroundYX(int y, int x)
         {
             List<Cell> result = new List<Cell>();
@@ -157,6 +163,7 @@ namespace MinesweeperOnline
                     if (CellType.Empty == c.cellType && null == c.mineProbability)
                     {
                         c.mineProbability = (decimal)remainedMines / nullProbability;
+                        c.mineProbability -= b.GetCellsSurroundYX(c).Where(h => CellType.Unknown == h.cellType).Count() * 0.001m;
                     }
                 }
             }
@@ -191,6 +198,7 @@ namespace MinesweeperOnline
     public class WebOperator
     {
         public IWebDriver driver;
+
         public WebOperator(IWebDriver d, string targetURL = @"https://minesweeper.online/")
         {
             driver = d ?? new ChromeDriver();
@@ -198,6 +206,19 @@ namespace MinesweeperOnline
             driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(5);
             Thread.Sleep(1000);
         }
+
+        public int GetMinesNumber()
+        {
+            Regex regexDigit = new Regex("top-area-num(?<num>\\d)");
+            var num100 = driver.FindElement(By.Id("top_area_mines_100")).GetAttribute("class");
+            var num10 = driver.FindElement(By.Id("top_area_mines_10")).GetAttribute("class");
+            var num1 = driver.FindElement(By.Id("top_area_mines_1")).GetAttribute("class");
+            Match match100 = regexDigit.Match(string.Join("", num100));
+            Match match10 = regexDigit.Match(string.Join("", num10));
+            Match match1 = regexDigit.Match(string.Join("", num1));
+            return int.Parse(match100.Groups["num"].Value+ match10.Groups["num"].Value+ match1.Groups["num"].Value);
+        }
+
         public Board MakeBoard(ReadOnlyCollection<IWebElement> data, Board b)
         {
             Board board = b;
@@ -244,6 +265,9 @@ namespace MinesweeperOnline
         {
 
             WebOperator webOperator = new WebOperator(new ChromeDriver());
+
+            int mineNumber = webOperator.GetMinesNumber();
+
             webOperator.ClickOnBoard(6, 6);
             webOperator.ClickOnBoard(2, 2);
 
