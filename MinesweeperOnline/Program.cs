@@ -107,19 +107,19 @@ namespace MinesweeperOnline
                             var sur = b.GetCellsSurroundYX(c.posY, c.posX);
                             decimal tatalUnknown = sur.Where(k => CellType.Unknown == k.cellType).Count();
                             decimal tatalMines = sur.Where(k => CellType.Mine == k.cellType).Count();
-                            if (0== tatalUnknown)
+                            if (0 == tatalUnknown)
                             {
                                 continue;
                             }
                             foreach (var s in sur.Where(k => CellType.Unknown == k.cellType))
                             {
-                                if ( 0 == s.mineProbability || 0==(c.indicator - tatalMines))
+                                if (0 == s.mineProbability || 0 == (c.indicator - tatalMines))
                                 {
                                     s.mineProbability = 0;
                                     continue;
                                 }
 
-                                if (null == s.mineProbability || s.mineProbability < ((c.indicator- tatalMines) / tatalUnknown))
+                                if (null == s.mineProbability || s.mineProbability < ((c.indicator - tatalMines) / tatalUnknown))
                                 {
                                     s.mineProbability = (c.indicator - tatalMines) / tatalUnknown;
                                     if (s.mineProbability >= 1)
@@ -137,6 +137,33 @@ namespace MinesweeperOnline
         }
     }
 
+    public class StratagyRemainedMines : IStratagy
+    {
+        public int defaultMines;
+
+        public StratagyRemainedMines(int m)
+        {
+            defaultMines = m;
+        }
+
+        public bool Evaluate(Board b)
+        {
+            int remainedMines = defaultMines - b.map.SelectMany(a => a).Where(k => CellType.Mine == k.cellType).Count();
+            int nullProbability = b.map.SelectMany(a => a).Where(k => CellType.Unknown == k.cellType && null == k.mineProbability).Count();
+            foreach (var row in b.map)
+            {
+                foreach (var c in row)
+                {
+                    if (CellType.Empty == c.cellType && null == c.mineProbability)
+                    {
+                        c.mineProbability = (decimal)remainedMines / nullProbability;
+                    }
+                }
+            }
+            return false;
+        }
+    }
+
     public class MinesweeperSolver
     {
         public List<IStratagy> stratagies = new List<IStratagy>();
@@ -144,6 +171,7 @@ namespace MinesweeperOnline
         public MinesweeperSolver()
         {
             stratagies.Add(new StratagyBase());
+            stratagies.Add(new StratagyRemainedMines(10));
         }
 
         public Cell BestMove(Board board)
@@ -153,17 +181,17 @@ namespace MinesweeperOnline
                 bool chk = true;
                 while (chk)
                 {
-                    chk=sgt.Evaluate(board);
+                    chk = sgt.Evaluate(board);
                 }
             }
-            return board.map.SelectMany(a => a).Where(b => null != b.mineProbability && CellType.Unknown==b.cellType).OrderBy(c => c.mineProbability).FirstOrDefault();
+            return board.map.SelectMany(a => a).Where(b => null != b.mineProbability && CellType.Unknown == b.cellType).OrderBy(c => c.mineProbability).FirstOrDefault();
         }
     }
 
     public class WebOperator
     {
         public IWebDriver driver;
-        public WebOperator(IWebDriver d, string targetURL= @"https://minesweeper.online/")
+        public WebOperator(IWebDriver d, string targetURL = @"https://minesweeper.online/")
         {
             driver = d ?? new ChromeDriver();
             driver.Navigate().GoToUrl(targetURL);
@@ -221,12 +249,12 @@ namespace MinesweeperOnline
 
             while (true)
             {
-                Board board = new Board(9,9);
+                Board board = new Board(9, 9);
                 var data = webOperator.driver.FindElement(By.Id("A43")).FindElements(By.CssSelector(".cell"));
                 webOperator.MakeBoard(data, board);
                 MinesweeperSolver solver = new MinesweeperSolver();
-                var nextMove=solver.BestMove(board);
-                if (null==nextMove)
+                var nextMove = solver.BestMove(board);
+                if (null == nextMove)
                 {
                     break;
                 }
