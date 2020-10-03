@@ -48,10 +48,13 @@ namespace MinesweeperOnline
         public int width;
         public int height;
         public int size;
-        public Board(int w, int h)
+
+        public int defaultMines;
+        public Board(int w, int h, int m)
         {
             width = w;
             height = h;
+            defaultMines = m;
             map = new List<List<Cell>>();
         }
 
@@ -145,16 +148,10 @@ namespace MinesweeperOnline
 
     public class StratagyRemainedMines : IStratagy
     {
-        public int defaultMines;
-
-        public StratagyRemainedMines(int m)
-        {
-            defaultMines = m;
-        }
 
         public bool Evaluate(Board b)
         {
-            int remainedMines = defaultMines - b.map.SelectMany(a => a).Where(k => CellType.Mine == k.cellType).Count();
+            int remainedMines = b.defaultMines - b.map.SelectMany(a => a).Where(k => CellType.Mine == k.cellType).Count();
             int nullProbability = b.map.SelectMany(a => a).Where(k => CellType.Unknown == k.cellType && null == k.mineProbability).Count();
             foreach (var row in b.map)
             {
@@ -178,7 +175,7 @@ namespace MinesweeperOnline
         public MinesweeperSolver()
         {
             stratagies.Add(new StratagyBase());
-            stratagies.Add(new StratagyRemainedMines(10));
+            stratagies.Add(new StratagyRemainedMines());
         }
 
         public Cell BestMove(Board board)
@@ -207,6 +204,18 @@ namespace MinesweeperOnline
             Thread.Sleep(1000);
         }
 
+        public int GetBoardWidth()
+        {
+            var col = driver.FindElement(By.Id("A43")).FindElements(By.CssSelector(".cell")).Count() / GetBoardHeight();
+            return col;
+        }
+
+        public int GetBoardHeight()
+        {
+            var rows = driver.FindElement(By.Id("A43")).FindElements(By.CssSelector(".clear")).Count();
+            return rows;
+        }
+
         public int GetMinesNumber()
         {
             Regex regexDigit = new Regex("top-area-num(?<num>\\d)");
@@ -216,7 +225,7 @@ namespace MinesweeperOnline
             Match match100 = regexDigit.Match(string.Join("", num100));
             Match match10 = regexDigit.Match(string.Join("", num10));
             Match match1 = regexDigit.Match(string.Join("", num1));
-            return int.Parse(match100.Groups["num"].Value+ match10.Groups["num"].Value+ match1.Groups["num"].Value);
+            return int.Parse(match100.Groups["num"].Value + match10.Groups["num"].Value + match1.Groups["num"].Value);
         }
 
         public Board MakeBoard(ReadOnlyCollection<IWebElement> data, Board b)
@@ -265,15 +274,15 @@ namespace MinesweeperOnline
         {
 
             WebOperator webOperator = new WebOperator(new ChromeDriver());
-
             int mineNumber = webOperator.GetMinesNumber();
-
-            webOperator.ClickOnBoard(6, 6);
-            webOperator.ClickOnBoard(2, 2);
+            int BoardHeight = webOperator.GetBoardHeight();
+            int BoardWidth = webOperator.GetBoardWidth();
+            webOperator.ClickOnBoard(BoardHeight / 2 + 2, BoardWidth / 2 + 2);
+            webOperator.ClickOnBoard(BoardHeight / 2 - 2, BoardWidth / 2 - 2);
 
             while (true)
             {
-                Board board = new Board(9, 9);
+                Board board = new Board(BoardWidth, BoardHeight, mineNumber);
                 var data = webOperator.driver.FindElement(By.Id("A43")).FindElements(By.CssSelector(".cell"));
                 webOperator.MakeBoard(data, board);
                 MinesweeperSolver solver = new MinesweeperSolver();

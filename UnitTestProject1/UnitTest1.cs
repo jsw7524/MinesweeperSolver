@@ -13,7 +13,7 @@ namespace UnitTestProject1
     {
         Board CreateTestBoard()
         {
-            Board board = new Board(3, 3);
+            Board board = new Board(3, 3,2);
             board.AddCell(new Cell(CellType.Unknown, -1, 0, 0));
             board.AddCell(new Cell(CellType.Unknown, -1, 0, 1));
             board.AddCell(new Cell(CellType.Unknown, -1, 0, 2));
@@ -30,7 +30,7 @@ namespace UnitTestProject1
         {
             WebOperator webOperator = new WebOperator(new ChromeDriver(), @"file:///C:/Users/netsp/source/repos/MinesweeperOnline/UnitTestProject1/bin/Debug/Game435842338.html");
             var data = webOperator.driver.FindElement(By.Id("A43")).FindElements(By.CssSelector(".cell"));
-            Board board = new Board(9, 9);
+            Board board = new Board(9, 9,10);
             Board result = webOperator.MakeBoard(data, board);
             webOperator.driver.Quit();
             return result;
