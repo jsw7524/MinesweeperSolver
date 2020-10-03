@@ -160,7 +160,7 @@ namespace MinesweeperOnline
                     if (CellType.Empty == c.cellType && null == c.mineProbability)
                     {
                         c.mineProbability = (decimal)remainedMines / nullProbability;
-                        c.mineProbability -= b.GetCellsSurroundYX(c).Where(h => CellType.Unknown == h.cellType).Count() * 0.001m;
+                        //c.mineProbability -= b.GetCellsSurroundYX(c).Where(h => CellType.Unknown == h.cellType).Count() * 0.001m;
                     }
                 }
             }
@@ -201,7 +201,7 @@ namespace MinesweeperOnline
             driver = d ?? new ChromeDriver();
             driver.Navigate().GoToUrl(targetURL);
             driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(5);
-            Thread.Sleep(1000);
+            Thread.Sleep(500);
         }
 
         public int GetBoardWidth()
@@ -264,7 +264,7 @@ namespace MinesweeperOnline
         {
             var target = driver.FindElement(By.Id($"cell_{x}_{y}"));
             target.Click();
-            Thread.Sleep(500);
+            Thread.Sleep(100);
         }
     }
 
